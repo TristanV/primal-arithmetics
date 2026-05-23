@@ -57,7 +57,7 @@ a,button{transition:color var(--tr),background var(--tr),border-color var(--tr),
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 
 /* ── Layout ───────────────────────────────────────────────── */
-.page{max-width:860px;margin-inline:auto;padding:clamp(1.5rem,4vw,3rem) clamp(1rem,3vw,2rem)}
+.page{max-width:900px;margin-inline:auto;padding:clamp(1.5rem,4vw,3rem) clamp(1rem,3vw,2rem)}
 
 /* ── Header ──────────────────────────────────────────────── */
 .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:clamp(2rem,5vw,3.5rem)}
@@ -75,6 +75,16 @@ a,button{transition:color var(--tr),background var(--tr),border-color var(--tr),
 
 /* ── Input card ─────────────────────────────────────────────── */
 .input-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:clamp(1.25rem,3vw,1.75rem);margin-bottom:2rem;box-shadow:var(--shadow-sm)}
+
+/* Notation selector tabs */
+.notation-tabs{display:flex;gap:.375rem;margin-bottom:1.1rem;flex-wrap:wrap}
+.tab-btn{padding:.38rem .85rem;border-radius:var(--r-full);font-size:.8125rem;font-weight:500;border:1.5px solid var(--border);color:var(--muted);background:transparent;transition:all var(--tr)}
+.tab-btn:hover{color:var(--text);background:var(--offset)}
+.tab-btn.active{background:var(--primary);border-color:var(--primary);color:#fff}
+
+/* Input hint */
+.input-hint{font-size:.775rem;color:var(--muted);margin-bottom:.625rem;min-height:1.2em;font-style:italic}
+
 .input-row{display:flex;gap:.75rem;align-items:stretch;flex-wrap:wrap}
 .input-wrap{flex:1;min-width:180px;position:relative}
 .input-wrap label{display:block;font-size:.8125rem;font-weight:500;color:var(--muted);margin-bottom:.375rem;letter-spacing:.01em}
@@ -84,6 +94,10 @@ a,button{transition:color var(--tr),background var(--tr),border-color var(--tr),
 .calc-btn{align-self:flex-end;padding:.68rem 1.5rem;background:var(--primary);color:#fff;border-radius:var(--r);font-weight:600;font-size:.9375rem;white-space:nowrap;box-shadow:var(--shadow-sm)}
 .calc-btn:hover{background:var(--primary-h);box-shadow:var(--shadow-md)}
 .calc-btn:active{transform:scale(.97)}
+
+/* Inline conversion preview */
+.preview-row{margin-top:.875rem;padding:.625rem .875rem;background:var(--surface2);border-radius:var(--r);font-size:.8rem;color:var(--muted);min-height:2.2rem;border:1px solid var(--border)}
+.preview-row strong{color:var(--text);font-family:var(--font-mono)}
 
 /* ── Error ──────────────────────────────────────────────────── */
 .error-msg{margin-top:.625rem;font-size:.8125rem;color:var(--prime);display:none}
@@ -113,6 +127,10 @@ a,button{transition:color var(--tr),background var(--tr),border-color var(--tr),
 .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
 .dot-add{background:var(--accent-b)}
 .dot-mul{background:var(--accent-a)}
+
+/* base-10 panel */
+.dot-b10{background:var(--primary)}
+.notation.b10-panel{border-color:color-mix(in oklch,var(--primary) 30%,transparent)}
 
 .repr{font-family:var(--font-mono);font-size:1rem;font-weight:600;color:var(--text);word-break:break-all;line-height:1.5}
 .repr .digit{display:inline-block;padding:.1em .22em;border-radius:.25em;margin:.05em .04em;transition:background var(--tr)}
@@ -160,19 +178,33 @@ a,button{transition:color var(--tr),background var(--tr),border-color var(--tr),
 
   <!-- Hero -->
   <section class="hero">
-    <h1>Deux notations primales d’un entier</h1>
-    <p>Explorez la notation <strong>Primoriale</strong> (additive positionnelle) et le <strong>Codage Arithmétique Premier</strong> (multiplicatif, factorisation unique) pour n’importe quel entier naturel.</p>
+    <h1>Deux notations primales d'un entier</h1>
+    <p>Saisissez un nombre dans n'importe quelle notation — <strong>base&nbsp;10</strong>, <strong>Primoriale</strong> ou <strong>Codage Arithmétique Premier</strong> — et obtenez instantanément sa représentation dans les trois systèmes, ainsi que celles de son prédécesseur et successeur.</p>
   </section>
 
   <!-- Input -->
   <div class="input-card">
+
+    <!-- Notation selector -->
+    <div class="notation-tabs" role="group" aria-label="Choisir la notation de saisie">
+      <button class="tab-btn active" data-notation="b10"   onclick="setNotation('b10')">Base 10</button>
+      <button class="tab-btn"        data-notation="prim"  onclick="setNotation('prim')">Primoriale</button>
+      <button class="tab-btn"        data-notation="cap"   onclick="setNotation('cap')">Codage Arithmétique Premier</button>
+    </div>
+
+    <div class="input-hint" id="inputHint">Entrez un entier en base 10 (ex : 360)</div>
+
     <div class="input-row">
       <div class="input-wrap">
-        <label for="numInput">Entier en base 10</label>
-        <input id="numInput" class="num-input" type="number" min="1" placeholder="ex : 360" autocomplete="off">
+        <label for="numInput" id="inputLabel">Valeur</label>
+        <input id="numInput" class="num-input" type="text" placeholder="ex : 360" autocomplete="off" oninput="onInput()">
       </div>
       <button class="calc-btn" id="calcBtn" onclick="compute()">Analyser →</button>
     </div>
+
+    <!-- Live conversion preview -->
+    <div class="preview-row" id="previewRow">Saisissez un nombre pour voir sa valeur en base&nbsp;10.</div>
+
     <div class="error-msg" id="errMsg"></div>
   </div>
 
@@ -184,7 +216,7 @@ a,button{transition:color var(--tr),background var(--tr),border-color var(--tr),
   <!-- Legend -->
   <div class="legend" id="legend" style="display:none">
     <div class="legend-item"><div class="legend-sq" style="background:var(--primary-hl)"></div> Chiffre non nul</div>
-    <div class="legend-item"><div class="legend-sq" style="background:var(--prime-hl)"></div> Nombre premier (1 seul exposant = 1)</div>
+    <div class="legend-item"><div class="legend-sq" style="background:var(--prime-hl)"></div> Nombre premier (exposant unique = 1)</div>
     <div class="legend-item"><div class="legend-sq" style="background:var(--faint);opacity:.5"></div> Chiffre zéro</div>
     <div class="legend-item"><div class="dot dot-add"></div> Primoriale (additive)</div>
     <div class="legend-item"><div class="dot dot-mul"></div> Codage Arithmétique Premier</div>
@@ -192,7 +224,7 @@ a,button{transition:color var(--tr),background var(--tr),border-color var(--tr),
 
   <footer class="footer">
     <span>Primal Arithmetics · <a href="https://github.com/TristanV/primal-arithmetics" target="_blank" rel="noopener">GitHub</a></span>
-    <span>Théorème fondamental de l’arithmétique</span>
+    <span>Théorème fondamental de l'arithmétique</span>
   </footer>
 </div>
 
@@ -214,7 +246,38 @@ function isPrime(n){
   return true;
 }
 
+// ── Notation state ─────────────────────────────────────────────────
+let currentNotation = 'b10'; // 'b10' | 'prim' | 'cap'
+
+const HINTS = {
+  b10:  'Entrez un entier en base 10 (ex : 360)',
+  prim: 'Chiffres séparés par des espaces, de gauche (poids fort) à droite (unités primorial). Ex : 2 3 0 1 = 2·P3# + 3·P2# + 0·P1# + 1·1 = 2·30 + 3·6 + 0·2 + 1 = 79',
+  cap:  'Exposants séparés par des espaces, de gauche (2^e₁) à droite. Ex : 3 2 1 = 2³×3²×5¹ = 360'
+};
+
+const PLACEHOLDERS = {
+  b10:  'ex : 360',
+  prim: 'ex : 2 0 0 (= 2·6 = 12)',
+  cap:  'ex : 3 2 1 (= 2³·3²·5 = 360)'
+};
+
+function setNotation(n){
+  currentNotation = n;
+  document.querySelectorAll('.tab-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.notation===n);
+  });
+  document.getElementById('inputHint').textContent = HINTS[n];
+  document.getElementById('numInput').placeholder = PLACEHOLDERS[n];
+  document.getElementById('numInput').value = '';
+  document.getElementById('previewRow').textContent = 'Saisissez un nombre pour voir sa valeur en base\u00a010.';
+  document.getElementById('errMsg').textContent='';
+  document.getElementById('errMsg').classList.remove('visible');
+  document.getElementById('results').classList.remove('visible');
+  document.getElementById('legend').style.display='none';
+}
+
 // ── Primorial notation ─────────────────────────────────────────────────
+// Returns array of digits where index 0 = weight of P0# = 1, index 1 = weight of p1=2, etc.
 function toPrimorial(N){
   if(N===0) return [0];
   const digits = [];
@@ -231,6 +294,31 @@ function toPrimorial(N){
   return digits;
 }
 
+// Parse primorial notation: space-separated digits, left=high weight, right=low weight
+// e.g. "2 0 0" → [0,0,2] internally (index 0 = weight of 1)
+function parsePrimorial(str){
+  const parts = str.trim().split(/\s+/).filter(Boolean);
+  if(parts.length === 0) return null;
+  // validate: digit at position i (from right, 0-based) must be < PRIMES[i]
+  // parts are left=high, right=low, so reverse
+  const rev = [...parts].reverse();
+  let value = 0n;
+  let primorial = 1n;
+  for(let i=0;i<rev.length;i++){
+    const d = parseInt(rev[i], 10);
+    if(isNaN(d) || d < 0) return null;
+    const maxDigit = i === 0 ? Infinity : PRIMES[i-1]; // index 0 weight=1, digit can be anything ≥0
+    // Actually: digit at position i corresponds to prime[i], so max = PRIMES[i]-1 for i>=1, ∞ for i=0
+    const bound = i < PRIMES.length ? PRIMES[i] : Infinity;
+    if(d >= bound) return null; // digit out of range for this position
+    value += BigInt(d) * primorial;
+    if(i+1 < PRIMES.length) primorial *= BigInt(PRIMES[i+1]);
+    else primorial *= BigInt(PRIMES[i]+1); // won't actually be used
+  }
+  if(value > BigInt(1e12)) return null; // too large
+  return Number(value);
+}
+
 // ── Prime Arithmetic Coding ────────────────────────────────────────────
 function toArithmeticCoding(N){
   if(N===1) return [0];
@@ -245,6 +333,58 @@ function toArithmeticCoding(N){
   }
   while(exps.length > 1 && exps[exps.length-1]===0) exps.pop();
   return exps;
+}
+
+// Parse arithmetic coding: space-separated exponents, left=2^e1, right=last prime
+// e.g. "3 2 1" → 2^3 * 3^2 * 5^1 = 360
+function parseArithmeticCoding(str){
+  const parts = str.trim().split(/\s+/).filter(Boolean);
+  if(parts.length === 0) return null;
+  let value = 1;
+  for(let i=0;i<parts.length;i++){
+    const e = parseInt(parts[i], 10);
+    if(isNaN(e) || e < 0) return null;
+    if(i >= PRIMES.length) return null;
+    value *= Math.pow(PRIMES[i], e);
+    if(!Number.isFinite(value) || value > 1e12) return null;
+  }
+  if(!Number.isInteger(value) || value < 1) return null;
+  return value;
+}
+
+// ── Parse input according to notation ──────────────────────────────────
+function parseInput(raw){
+  const str = raw.trim();
+  if(!str) return null;
+  if(currentNotation === 'b10'){
+    const n = parseInt(str, 10);
+    if(isNaN(n) || n < 1 || n > 1e12) return null;
+    return n;
+  }
+  if(currentNotation === 'prim'){
+    return parsePrimorial(str);
+  }
+  if(currentNotation === 'cap'){
+    return parseArithmeticCoding(str);
+  }
+  return null;
+}
+
+// ── Live preview ───────────────────────────────────────────────────────
+function onInput(){
+  const raw = document.getElementById('numInput').value;
+  const previewEl = document.getElementById('previewRow');
+  if(!raw.trim()){ previewEl.textContent = 'Saisissez un nombre pour voir sa valeur en base\u00a010.'; return; }
+  const n = parseInput(raw);
+  if(n === null){
+    previewEl.innerHTML = '<span style="color:var(--prime)">Notation invalide pour ce système.</span>';
+  } else {
+    if(currentNotation === 'b10'){
+      previewEl.innerHTML = `Valeur : <strong>${n.toLocaleString('fr-FR')}</strong>`;
+    } else {
+      previewEl.innerHTML = `→ base&nbsp;10&nbsp;: <strong>${n.toLocaleString('fr-FR')}</strong>`;
+    }
+  }
 }
 
 // ── Render digits ─────────────────────────────────────────────────────
@@ -341,17 +481,26 @@ function compute(){
 
   errEl.textContent=''; errEl.classList.remove('visible');
 
-  const N = parseInt(raw, 10);
-  if(!raw || isNaN(N) || N < 1){
-    errEl.textContent = 'Veuillez saisir un entier ≥ 1.';
+  if(!raw){
+    errEl.textContent = 'Veuillez saisir une valeur.';
     errEl.classList.add('visible');
     resEl.classList.remove('visible');
     legEl.style.display='none';
     return;
   }
-  if(N > 1e12){
-    errEl.textContent = 'Entier trop grand (max 10¹² pour la factorisation JS).';
+
+  const N = parseInput(raw);
+
+  if(N === null){
+    const tips = {
+      b10:  'Entrez un entier ≥ 1 en base 10 (max 10¹²).',
+      prim: 'Format invalide. Séparez les chiffres par des espaces (gauche = poids fort). Chaque chiffre doit être inférieur au premier correspondant.',
+      cap:  'Format invalide. Séparez les exposants par des espaces (gauche = exposant de 2). Tous les exposants doivent être ≥ 0.'
+    };
+    errEl.textContent = tips[currentNotation];
     errEl.classList.add('visible');
+    resEl.classList.remove('visible');
+    legEl.style.display='none';
     return;
   }
 
