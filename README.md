@@ -45,7 +45,7 @@ P_5# = 2 × 3 × 5 × 7 × 11 = 2 310
 ...
 ```
 
-Tout entier naturel N s'écrit de manière **unique** :
+Tout entier naturel N s’écrit de manière **unique** :
 
 ```
 N = d₁·P₀# + d₂·P₁# + d₃·P₂# + d₄·P₃# + …
@@ -54,7 +54,7 @@ N = d₁·P₀# + d₂·P₁# + d₃·P₂# + d₄·P₃# + …
 
 avec la contrainte **0 ≤ dᵢ < pᵢ** (pᵢ étant le i-ème nombre premier).
 
-### Convention d'écriture
+### Convention d’écriture
 
 On écrit les chiffres **de droite à gauche**, séparés par un espace :
 
@@ -77,8 +77,8 @@ Exemples :
 ### Propriétés
 
 - **Unicité** : tout entier a exactement une représentation (analogue au théorème fondamental en base mixte).
-- **Ordre compatible** : si on compare deux représentations lexicographiquement (de gauche à droite, en alignant à gauche avec des zéros), l'ordre obtenu coïncide avec l'ordre usuel de ℕ.
-- **Addition naturelle** : s'additionne chiffre par chiffre avec retenues, exactement comme en base 10, avec la règle de retenue à la position i : retenue quand la somme dépasse pᵢ − 1.
+- **Ordre compatible** : si on compare deux représentations lexicographiquement (de gauche à droite, en alignant à gauche avec des zéros), l’ordre obtenu coïncide avec l’ordre usuel de ℕ.
+- **Addition naturelle** : s’additionne chiffre par chiffre avec retenues, exactement comme en base 10, avec la règle de retenue à la position i : retenue quand la somme dépasse pᵢ − 1.
 - **Borne des chiffres croissante** : le chiffre d₁ ∈ {0,1}, d₂ ∈ {0,1,2}, d₃ ∈ {0,1,2,3,4}, d₄ ∈ {0,…,6}, etc.
 
 ---
@@ -87,13 +87,13 @@ Exemples :
 
 ### Nom et contexte
 
-Ce système s'appelle **Codage Arithmétique Premier** (en anglais : *Prime Arithmetic Coding*). Il appartient au même domaine que les primoriaux : la **théorie multiplicative des nombres premiers**. Le nom fait écho au **Théorème fondamental de l'arithmétique** (Fundamental Theorem of Arithmetic), qui garantit la factorisation unique en produit de premiers — c'est exactement ce qui fonde l'unicité de ce système.
+Ce système s’appelle **Codage Arithmétique Premier** (en anglais : *Prime Arithmetic Coding*). Il appartient au même domaine que les primoriaux : la **théorie multiplicative des nombres premiers**. Le nom fait écho au **Théorème fondamental de l’arithmétique** (Fundamental Theorem of Arithmetic), qui garantit la factorisation unique en produit de premiers — c’est exactement ce qui fonde l’unicité de ce système.
 
-En logique mathématique, Kurt Gödel a utilisé ce même codage dans ses théorèmes d'incomplétude (1931) pour encoder des suites finies d'entiers en un seul entier : c'est le **numérotage de Gödel**.
+En logique mathématique, Kurt Gödel a utilisé ce même codage dans ses théorèmes d’incomplitude (1931) pour encoder des suites finies d’entiers en un seul entier : c’est le **numérotage de Gödel**.
 
 ### Définition
 
-Le **Théorème fondamental de l'arithmétique** affirme que tout entier N ≥ 1 s'écrit de façon **unique** :
+Le **Théorème fondamental de l’arithmétique** affirme que tout entier N ≥ 1 s’écrit de façon **unique** :
 
 ```
 N = p₁^c₁ × p₂^c₂ × p₃^c₃ × … = 2^c₁ × 3^c₂ × 5^c₃ × 7^c₄ × …
@@ -103,7 +103,7 @@ où les cᵢ sont des entiers naturels, presque tous nuls.
 
 On code N par la suite de ses **exposants de factorisation** : (c₁, c₂, c₃, …).
 
-### Convention d'écriture
+### Convention d’écriture
 
 On écrit les exposants **de droite à gauche**, séparés par un espace :
 
@@ -111,7 +111,7 @@ On écrit les exposants **de droite à gauche**, séparés par un espace :
 … c₄ c₃ c₂ c₁
 ```
 
-Le chiffre le plus à droite (c₁) est l'exposant de 2 ; à sa gauche (c₂) l'exposant de 3, etc.
+Le chiffre le plus à droite (c₁) est l’exposant de 2 ; à sa gauche (c₂) l’exposant de 3, etc.
 
 Exemples :
 
@@ -124,11 +124,11 @@ Exemples :
 
 ### Propriétés
 
-- **Unicité** : découle directement du Théorème fondamental de l'arithmétique.
+- **Unicité** : découle directement du Théorème fondamental de l’arithmétique.
 - **Multiplication = addition des chiffres** : si A = ∏pᵢ^aᵢ et B = ∏pᵢ^bᵢ, alors A×B = ∏pᵢ^(aᵢ+bᵢ). Multiplier deux nombres revient à additionner leurs représentations composante par composante.
 - **Divisibilité lisible** : A divise B si et seulement si cᵢ(A) ≤ cᵢ(B) pour tous i.
 - **PGCD et PPCM immédiats** : PGCD(A,B) = ∏pᵢ^min(aᵢ,bᵢ) et PPCM(A,B) = ∏pᵢ^max(aᵢ,bᵢ).
-- **Ordre non compatible** : l'ordre usuel de ℕ ne se lit pas directement sur les exposants (8 = (3,0,…) < 9 = (0,2,…) mais le vecteur (3,0) n'est pas « plus petit » que (0,2) dans l'ordre naturel des vecteurs).
+- **Ordre non compatible** : l’ordre usuel de ℕ ne se lit pas directement sur les exposants (8 = (3,0,…) < 9 = (0,2,…) mais le vecteur (3,0) n’est pas « plus petit » que (0,2) dans l’ordre naturel des vecteurs).
 
 ---
 
@@ -156,7 +156,7 @@ Tout nombre premier pₖ (le k-ième premier) vérifie :
 pₖ = P_{k-1}# + r    avec 0 < r < pₖ
 ```
 
-**Propriété digitale clé** : le dernier chiffre d₁ (coefficient de 1) vaut 1 pour tout premier ≥ 3 (tous les premiers impairs). Le premier 2 a d₁ = 0 et d₂ = 1. Plus généralement, les deux derniers chiffres (d₁, d₂) ne peuvent être simultanément non nuls que si le nombre n'est pas divisible par 2 ni par 3.
+**Propriété digitale clé** : le dernier chiffre d₁ (coefficient de 1) vaut 1 pour tout premier ≥ 3 (tous les premiers impairs). Le premier 2 a d₁ = 0 et d₂ = 1. Plus généralement, les deux derniers chiffres (d₁, d₂) ne peuvent être simultanément non nuls que si le nombre n’est pas divisible par 2 ni par 3.
 
 **Exemples :**
 ```
@@ -180,11 +180,11 @@ Un nombre premier p a la représentation **la plus simple possible** : exactemen
 11 → 1 0 0 0 0 (c₅ = 1)
 ```
 
-**Propriété digitale clé** : N est premier si et seulement si exactement **un seul cᵢ vaut 1 et tous les autres valent 0**. C'est la caractérisation la plus directe possible de la primalité dans ce système.
+**Propriété digitale clé** : N est premier si et seulement si exactement **un seul cᵢ vaut 1 et tous les autres valent 0**. C’est la caractérisation la plus directe possible de la primalité dans ce système.
 
 **Corollaires :**
 - N = 1 → tous les exposants sont 0 (le vecteur nul).
-- N est une puissance d'un premier pₖ → un seul cₖ est non nul.
+- N est une puissance d’un premier pₖ → un seul cₖ est non nul.
 - N est sans facteur carré (*squarefree*) → tous les cᵢ ∈ {0, 1}.
 - N est un carré parfait → tous les cᵢ sont pairs.
 
@@ -221,7 +221,7 @@ Pour chaque premier pᵢ = 2, 3, 5, 7, … :
     N ← N / pᵢ
     cᵢ ← cᵢ + 1
   (passer au premier suivant)
-S'arrêter quand N = 1.
+S’arrêter quand N = 1.
 ```
 
 **Exemple : N = 360**
@@ -232,17 +232,85 @@ S'arrêter quand N = 1.
 → 360 = 2³ × 3² × 5  →  0 0 0 0 0 1 2 3
 ```
 
+### Primoriale → Base 10
+
+Reconstruction par somme pondérée :
+
+```
+N = ∑ dᵢ × P_{i-1}#
+```
+
+**Exemple : « 0 2 1 » (chiffres saisis de gauche à droite, poids fort d’abord)**
+```
+Position 3 (d₃) = 0  → 0 × P₂# = 0 × 6  = 0
+Position 2 (d₂) = 2  → 2 × P₁# = 2 × 2  = 4
+Position 1 (d₁) = 1  → 1 × P₀# = 1 × 1  = 1
+→ N = 0 + 4 + 1 = 5
+```
+Contrainte de validité : le chiffre à la position i (depuis la droite, 1-indexé) doit satisfaire dᵢ < pᵢ.
+
+### Codage Arithmétique Premier → Base 10
+
+Reconstruction par produit des puissances de premiers :
+
+```
+N = ∏ pᵢ^cᵢ = 2^c₁ × 3^c₂ × 5^c₃ × …
+```
+
+**Exemple : « 3 2 1 » (c₁=3, c₂=2, c₃=1)**
+```
+N = 2³ × 3² × 5¹ = 8 × 9 × 5 = 360
+```
+Tous les exposants doivent être ≥ 0 ; l’ordre est : le chiffre le plus à gauche est l’exposant du plus petit premier (2).
+
 ---
 
 ## 7. Application web
 
-Le fichier [`app.html`](./app.html) à la racine du dépôt est une application HTML + JavaScript autonome.
+Le fichier [`app.html`](./app.html) à la racine du dépôt est une application HTML + JavaScript autonome, sans dépendance externe.
 
-**Fonctionnalités :**
-- Saisie d'un entier en base 10
-- Affichage en notation Primoriale et en Codage Arithmétique Premier
-- Affichage des mêmes notations pour N−1 et N+1
-- Indication de primalité pour N−1, N et N+1
-- Mode clair / sombre
+**Usage :** ouvrir `app.html` directement dans un navigateur, ou cloner le dépôt :
 
-**Usage :** ouvrir `app.html` dans un navigateur, aucune dépendance externe requise.
+```bash
+git clone https://github.com/TristanV/primal-arithmetics.git
+```
+
+### Fonctionnalités
+
+#### Saisie multi-notation
+
+L’utilisateur choisit dans quelle notation il saisit son nombre grâce à trois onglets :
+
+| Onglet | Format de saisie | Exemple |
+|---|---|---|
+| **Base 10** | Entier décimal classique | `360` |
+| **Primoriale** | Chiffres séparés par des espaces, gauche = poids fort | `2 0 0` → 12 |
+| **Codage Arithmétique Premier** | Exposants séparés par des espaces, gauche = exposant de 2 | `3 2 1` → 360 |
+
+Quel que soit le système de saisie, l’application convertit d’abord la valeur en base 10, puis affiche les résultats dans les deux notations.
+
+#### Aperçu en temps réel
+
+Dès la frappe, une ligne sous le champ indique la **valeur équivalente en base 10** ou signale une notation invalide (chiffre hors borne, exposant négatif, etc.).
+
+#### Affichage pour N−1, N, N+1
+
+Pour chaque nombre (prédécesseur, valeur saisie, successeur) :
+
+- Représentation en **notation Primoriale** avec décomposition additive
+- Représentation en **Codage Arithmétique Premier** avec décomposition multiplicative
+- Badge **Premier** / **Composé** / **Unité**
+- Chiffres non nuls mis en surbrillance teal (Primoriale) ; exposant unique d’un premier mis en surbrillance violet (Codage)
+
+#### Validation et messages d’erreur contextuels
+
+Chaque notation dispose de son propre message d’aide précis en cas de saisie invalide :
+- **Base 10** : « entier ≥ 1, max 10¹² »
+- **Primoriale** : rappel de la contrainte dᵢ < pᵢ
+- **Codage** : rappel que tous les exposants doivent être ≥ 0
+
+#### Interface
+
+- Mode **clair / sombre** avec toggle (détection automatique de la préférence système)
+- Aucune dépendance externe — fichier HTML autonome
+- Limite de calcul : entiers jusqu’à 10¹² (arithmétique JavaScript native + BigInt pour la primoriale)
