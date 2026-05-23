@@ -89,10 +89,10 @@ a,button{transition:color var(--tr),background var(--tr),border-color var(--tr),
 .input-wrap{flex:1;min-width:180px;position:relative}
 .input-wrap label{display:block;font-size:.8125rem;font-weight:500;color:var(--muted);margin-bottom:.375rem;letter-spacing:.01em}
 
-/* RTL digit container — flex LTR, curseur à droite des tokens */
+/* Digit input container — flex LTR, tokens à gauche, curseur à droite */
 .rtl-input-container{
   display:flex;
-  flex-direction:row;          /* ← gauche→droite : tokens puis curseur */
+  flex-direction:row;
   align-items:center;
   gap:.375rem;
   background:var(--surface2);
@@ -109,10 +109,10 @@ a,button{transition:color var(--tr),background var(--tr),border-color var(--tr),
   box-shadow:0 0 0 3px color-mix(in oklch,var(--primary) 18%,transparent);
 }
 
-/* Tokens affichés du poids fort (gauche) au poids faible (droite) */
+/* Token row: poids fort à gauche, poids faible à droite */
 .rtl-digits{
   display:flex;
-  flex-direction:row;          /* ← ordre naturel, géré par renderRTL */
+  flex-direction:row;
   align-items:center;
   flex-wrap:wrap;
   gap:.3rem;
@@ -146,7 +146,7 @@ a,button{transition:color var(--tr),background var(--tr),border-color var(--tr),
   margin-left:.1rem;
 }
 
-/* The live typing cell — toujours à droite (poids le plus faible en cours) */
+/* Live typing cell — always last (rightmost = next lower weight) */
 .digit-cursor{
   display:inline-flex;
   align-items:center;
@@ -292,16 +292,17 @@ a,button{transition:color var(--tr),background var(--tr),border-color var(--tr),
         <!-- Base-10 standard input -->
         <input id="numInput" class="num-input" type="text" placeholder="ex : 360" autocomplete="off" oninput="onInput()">
 
-        <!-- RTL digit input (shown for prim / cap) -->
+        <!-- Digit input (shown for prim / cap) -->
         <div id="rtlWrap" style="display:none">
           <input class="hidden-input" id="hiddenInput" type="text" inputmode="numeric" autocomplete="off"
                  aria-label="Saisie des chiffres"
                  onkeydown="rtlKeydown(event)"
                  oninput="rtlOnInput(event)">
           <!--
-            Structure : flex-direction:row (LTR)
-            #rtlDigits : tokens du poids fort (gauche) → poids faible (droite)
-            #digitCursor : cellule de saisie, toujours en dernier → s'affiche à droite
+            Saisie gauche→droite : le premier chiffre tapé est le poids fort (gauche).
+            digits[0] = premier chiffre tapé = poids le plus fort.
+            digits[length-1] = dernier chiffre tapé = poids le plus faible (droite).
+            Le curseur de saisie (#digitCursor) est toujours à droite des tokens existants.
           -->
           <div class="rtl-input-container" id="rtlContainer" onclick="focusHidden()" tabindex="0"
                onkeydown="rtlKeydown(event)" onfocus="rtlFocus()" onblur="rtlBlur()">
@@ -361,15 +362,27 @@ function isPrime(n){
 // ── Notation state ─────────────────────────────────────────────────
 let currentNotation = 'b10';
 
-// rtlState[0] = premier chiffre tapé = d1/c1 = poids le plus FAIBLE (droite)
-// rtlState[k] = poids croissant vers la gauche
-let rtlState = [];
-let cursorBuffer = '';
+/*
+ * Convention : saisie gauche → droite, poids forts en premier.
+ *
+ * digits[0]          = premier chiffre tapé  = poids le plus FORT (gauche)
+ * digits[length-1]   = dernier chiffre tapé  = poids le plus FAIBLE (droite)
+ *
+ * Pour la primoriale, le nombre de chiffres est inconnu à l'avance.
+ * La validation de borne s'effectue au moment du commit en calculant
+ * l'index depuis la droite : quand on commit le k-ième token (0-indexé),
+ * on ne connaît pas encore combien de tokens suivront.
+ * => La validation complète est différée à la conversion finale.
+ *    Seule la contrainte "chiffre >= 0" est vérifiée en temps réel.
+ *    La borne primoriale (dᵢ < pᵢ) est vérifiée lors de primorialArrayToN.
+ */
+let digits = [];       // tableau des chiffres saisis, index 0 = poids fort
+let cursorBuffer = ''; // chiffres en cours de frappe (avant Espace/Entrée)
 
 const HINTS = {
   b10:  'Entrez un entier en base 10 (ex : 360)',
-  prim: 'Tapez d₁ (coeff de 1#=1), Espace, d₂ (coeff de 2#=2), Espace… Le chiffre de poids fort se place à gauche, comme en base 10.',
-  cap:  'Tapez c₁ (exposant de 2), Espace, c₂ (exposant de 3), Espace… Le chiffre de poids fort se place à gauche, comme en base 10.'
+  prim: 'Tapez les chiffres de gauche à droite : poids fort en premier. Ex : « 3 1 0 » → 3·P₂# + 1·P₁# + 0·P₀# = 3·6 + 1·2 + 0·1 = 20',
+  cap:  'Tapez les exposants de gauche à droite : poids fort en premier. Ex : « 2 0 1 » → 2²·3⁰·5¹ = 4·1·5 = 20'
 };
 
 function setNotation(n){
@@ -383,15 +396,15 @@ function setNotation(n){
   document.getElementById('rtlWrap').style.display  = isRTL ? '' : 'none';
   document.getElementById('clearBtn').style.display = isRTL ? '' : 'none';
   if(!isRTL){ document.getElementById('numInput').value = ''; }
-  rtlState = []; cursorBuffer = '';
-  renderRTL();
+  digits = []; cursorBuffer = '';
+  renderDigits();
   document.getElementById('previewRow').textContent = 'Saisissez un nombre pour voir sa valeur en base\u00a010.';
   clearError();
   document.getElementById('results').classList.remove('visible');
   document.getElementById('legend').style.display='none';
 }
 
-// ── RTL widget ────────────────────────────────────────────────────
+// ── Digit widget ────────────────────────────────────────────────────
 function focusHidden(){
   document.getElementById('hiddenInput').focus();
   rtlFocus();
@@ -399,22 +412,21 @@ function focusHidden(){
 function rtlFocus(){ document.getElementById('rtlContainer').classList.add('focused'); }
 function rtlBlur(){ document.getElementById('rtlContainer').classList.remove('focused'); }
 
+/*
+ * commitCursor : valide le chiffre en cours de frappe et l'ajoute à digits[].
+ * digits[0] = poids fort (premier tapé), donc on push() à la fin.
+ * La borne primoriale (dᵢ < pᵢ) dépend de combien de tokens suivront,
+ * ce qui est inconnu. On ne peut donc valider la borne qu'à la conversion.
+ * En revanche, on vérifie que la valeur est bien un entier >= 0.
+ */
 function commitCursor(){
   if(cursorBuffer === '') return;
   const val = parseInt(cursorBuffer, 10);
-  if(isNaN(val) || val < 0){ cursorBuffer=''; renderRTL(); return; }
-  const pos = rtlState.length;
-  if(currentNotation === 'prim'){
-    const bound = pos < PRIMES.length ? PRIMES[pos] : Infinity;
-    if(val >= bound){
-      showError(`Position ${pos+1} : d${pos+1} doit être < ${bound} (p${pos+1} = ${PRIMES[pos]})`);
-      cursorBuffer=''; renderRTL(); return;
-    }
-  }
-  rtlState.push(val);
+  if(isNaN(val) || val < 0){ cursorBuffer=''; renderDigits(); return; }
+  digits.push(val);
   cursorBuffer = '';
   clearError();
-  renderRTL();
+  renderDigits();
   updatePreview();
 }
 
@@ -423,17 +435,12 @@ function rtlKeydown(e){
   if(e.key === 'Backspace'){
     e.preventDefault();
     if(cursorBuffer.length > 0){ cursorBuffer = cursorBuffer.slice(0,-1); }
-    else if(rtlState.length > 0){ rtlState.pop(); clearError(); }
-    renderRTL(); updatePreview(); return;
+    else if(digits.length > 0){ digits.pop(); clearError(); }
+    renderDigits(); updatePreview(); return;
   }
   if(/^[0-9]$/.test(e.key)){
     cursorBuffer += e.key;
-    renderRTL();
-    if(currentNotation === 'prim'){
-      const pos = rtlState.length;
-      const bound = pos < PRIMES.length ? PRIMES[pos] : Infinity;
-      if(bound <= 10) commitCursor();
-    }
+    renderDigits();
     return;
   }
 }
@@ -443,52 +450,60 @@ function rtlOnInput(e){
   const v = h.value; h.value = '';
   for(const ch of v){
     if(/[0-9]/.test(ch)){
-      cursorBuffer += ch; renderRTL();
-      if(currentNotation === 'prim'){
-        const pos = rtlState.length;
-        const bound = pos < PRIMES.length ? PRIMES[pos] : Infinity;
-        if(bound <= 10) commitCursor();
-      }
+      cursorBuffer += ch; renderDigits();
     } else if(ch === ' '){ commitCursor(); }
   }
   updatePreview();
 }
 
 function rtlClear(){
-  rtlState = []; cursorBuffer = '';
-  clearError(); renderRTL(); updatePreview();
+  digits = []; cursorBuffer = '';
+  clearError(); renderDigits(); updatePreview();
   document.getElementById('results').classList.remove('visible');
   document.getElementById('legend').style.display='none';
 }
 
+/*
+ * buildPosLegend : affiche la légende des positions.
+ * digits[0] = poids fort = position la plus haute.
+ * Avec k = digits.length + (cursorBuffer ? 1 : 0) chiffres au total,
+ * le token d'index i (gauche→droite) correspond à la position (k-1-i)
+ * depuis la droite, donc :
+ *   - Primoriale : coefficient de P_{k-1-i}#
+ *   - CAP        : exposant de p_{k-1-i}
+ */
 function buildPosLegend(){
-  const total = rtlState.length + (cursorBuffer !== '' ? 1 : 0);
+  const total = digits.length + (cursorBuffer !== '' ? 1 : 0);
   if(total === 0) return '';
-  // Affichage du poids fort à gauche, comme on écrit un nombre
   const parts = [];
-  for(let i = total-1; i >= 0; i--){
-    parts.push(currentNotation === 'prim' ? `d${i+1}·P${i}#` : `c${i+1}·${PRIMES[i]}`);
+  for(let i = 0; i < total; i++){
+    const rank = total - 1 - i; // rang depuis la droite (0 = poids faible)
+    if(currentNotation === 'prim'){
+      parts.push(`d${rank+1}·P${rank}#`);
+    } else {
+      parts.push(`c${rank+1}·${PRIMES[rank]}`);
+    }
   }
   return parts.join(' + ');
 }
 
 /*
- * renderRTL — affiche les tokens du poids fort (gauche) au poids faible (droite),
- * avec le curseur de saisie toujours en dernier position (droite).
- *
- * rtlState est indexé du poids faible (index 0) au poids fort (index length-1).
- * Pour afficher gauche→droite : on itère de length-1 → 0.
- * Le curseur (#digitCursor) est un élément frère APRÈS #rtlDigits dans le DOM,
- * donc il s'affiche naturellement à droite dans un conteneur flex-direction:row.
+ * renderDigits : affiche les tokens gauche→droite (poids fort à gauche).
+ * digits[0] est affiché en premier (position gauche).
+ * Le sous-indice de chaque token indique son rang depuis la droite,
+ * calculé avec total = digits.length + (cursorBuffer ? 1 : 0).
  */
-function renderRTL(){
+function renderDigits(){
   const container = document.getElementById('rtlDigits');
   const cursor    = document.getElementById('digitCursor');
+  const total = digits.length + (cursorBuffer !== '' ? 1 : 0);
   let html = '';
-  // Itère du poids fort (index élevé) vers le poids faible (index 0) → ordre LTR
-  for(let i = rtlState.length-1; i >= 0; i--){
-    const sub = currentNotation === 'prim' ? `d<sub>${i+1}</sub>` : `c<sub>${i+1}</sub>`;
-    html += `<span class="digit-token" title="Cliquer pour supprimer" onclick="removeToken(${i})">${rtlState[i]}<span class="tok-pos">${sub}</span></span>`;
+  for(let i = 0; i < digits.length; i++){
+    const rank = total - 1 - i; // rang depuis la droite
+    const sub = currentNotation === 'prim'
+      ? `d<sub>${rank+1}</sub>`
+      : `c<sub>${rank+1}</sub>`;
+    html += `<span class="digit-token" title="Cliquer pour supprimer" onclick="removeToken(${i})">${digits[i]}<span class="tok-pos">${sub}</span></span>`;
   }
   container.innerHTML = html;
   cursor.textContent = cursorBuffer;
@@ -496,31 +511,59 @@ function renderRTL(){
 }
 
 function removeToken(idx){
-  rtlState.splice(idx, 1);
-  clearError(); renderRTL(); updatePreview();
+  digits.splice(idx, 1);
+  clearError(); renderDigits(); updatePreview();
 }
 
 // ── Conversions ────────────────────────────────────────────────────
+
+/*
+ * primorialArrayToN :
+ * arr[0] = poids fort (premier tapé, position la plus haute).
+ * arr[length-1] = poids faible (position 0).
+ *
+ * Valeur = sum_{i=0}^{n-1}  arr[i] * P_{n-1-i}#
+ * Contrainte : arr[i] < p_{n-1-i}  (p_k = PRIMES[k])
+ *
+ * On itère de droite à gauche dans arr (poids faible → fort) :
+ *   rank 0 (i = n-1) : arr[n-1] * P0# = arr[n-1] * 1
+ *   rank 1 (i = n-2) : arr[n-2] * P1# = arr[n-2] * 2
+ *   ...
+ */
 function primorialArrayToN(arr){
+  const n = arr.length;
   let value = 0n, primorial = 1n;
-  for(let i = 0; i < arr.length; i++){
+  for(let rank = 0; rank < n; rank++){
+    const i = n - 1 - rank; // index dans arr pour ce rang
     const d = arr[i];
-    const bound = i < PRIMES.length ? PRIMES[i] : Infinity;
-    if(d >= bound) return null;
+    const bound = rank < PRIMES.length ? PRIMES[rank] : Infinity;
+    if(d >= bound) return null; // contrainte dᵢ < pᵢ
     value += BigInt(d) * primorial;
-    if(i+1 < PRIMES.length) primorial *= BigInt(PRIMES[i+1]);
+    if(rank+1 < PRIMES.length) primorial *= BigInt(PRIMES[rank+1]);
     else primorial *= 2n;
   }
   if(value > BigInt(1e12)) return null;
   return Number(value);
 }
 
+/*
+ * capArrayToN :
+ * arr[0] = poids fort = exposant de la plus grande prime utilisée.
+ * arr[length-1] = exposant de p_0 = 2.
+ *
+ * Valeur = prod_{i=0}^{n-1}  p_{n-1-i}^{arr[i]}
+ * (rank = n-1-i depuis la droite)
+ *
+ * Itération de droite (rank 0 = exposant de 2) vers la gauche.
+ */
 function capArrayToN(arr){
+  const n = arr.length;
   let value = 1;
-  for(let i = 0; i < arr.length; i++){
+  for(let rank = 0; rank < n; rank++){
+    const i = n - 1 - rank;
     const e = arr[i];
-    if(e < 0 || !Number.isInteger(e) || i >= PRIMES.length) return null;
-    value *= Math.pow(PRIMES[i], e);
+    if(e < 0 || !Number.isInteger(e) || rank >= PRIMES.length) return null;
+    value *= Math.pow(PRIMES[rank], e);
     if(!Number.isFinite(value) || value > 1e12) return null;
   }
   return Number.isInteger(value) && value >= 1 ? value : null;
@@ -528,22 +571,23 @@ function capArrayToN(arr){
 
 function getRTLValue(){
   if(cursorBuffer !== '') commitCursor();
-  if(rtlState.length === 0) return null;
-  return currentNotation === 'prim' ? primorialArrayToN(rtlState) : capArrayToN(rtlState);
+  if(digits.length === 0) return null;
+  return currentNotation === 'prim' ? primorialArrayToN(digits) : capArrayToN(digits);
 }
 
 function toPrimorial(N){
   if(N===0) return [0];
-  const digits = []; let primorial = 1n; const bn = BigInt(N);
+  const arr = []; let primorial = 1n; const bn = BigInt(N);
   for(let i=0;i<PRIMES.length;i++){
     const p = BigInt(PRIMES[i]);
     const di = Number((bn / primorial) % p);
-    digits.push(di);
+    arr.push(di);
     primorial *= p;
     if(primorial > bn) break;
   }
-  while(digits.length > 1 && digits[digits.length-1]===0) digits.pop();
-  return digits;
+  while(arr.length > 1 && arr[arr.length-1]===0) arr.pop();
+  // arr[0]=d1 (poids faible), arr[k]=d_{k+1} — on renvoie tel quel pour renderNotationPanel
+  return arr;
 }
 
 function toArithmeticCoding(N){
@@ -578,16 +622,16 @@ function onInput(){
 function updatePreview(){
   if(currentNotation === 'b10') return;
   const pr = document.getElementById('previewRow');
-  if(rtlState.length === 0 && cursorBuffer === ''){
+  if(digits.length === 0 && cursorBuffer === ''){
     pr.textContent = 'Saisissez un nombre pour voir sa valeur en base\u00a010.';
     return;
   }
   // peek: commit buffer temporarily
-  const savedBuf = cursorBuffer, savedState = [...rtlState];
+  const savedBuf = cursorBuffer, savedDigits = [...digits];
   if(cursorBuffer !== '') commitCursor();
-  const val = currentNotation === 'prim' ? primorialArrayToN(rtlState) : capArrayToN(rtlState);
-  rtlState.length = 0; savedState.forEach(v=>rtlState.push(v));
-  cursorBuffer = savedBuf; renderRTL();
+  const val = currentNotation === 'prim' ? primorialArrayToN(digits) : capArrayToN(digits);
+  digits.length = 0; savedDigits.forEach(v=>digits.push(v));
+  cursorBuffer = savedBuf; renderDigits();
   if(val === null) pr.innerHTML = '<span style="color:var(--prime)">Valeur invalide ou hors limite</span>';
   else pr.innerHTML = `Valeur = <strong>${val.toLocaleString('fr-FR')}</strong>`;
 }
@@ -609,7 +653,7 @@ function compute(){
     N = getRTLValue();
     if(N === null){
       showError(currentNotation==='prim'
-        ? 'Notation primoriale invalide. Vérifiez que chaque chiffre dᵢ est < pᵢ.'
+        ? 'Notation primoriale invalide. Vérifiez que chaque chiffre dᵢ est < pᵢ (le chiffre le plus à droite est d₁ < 2, puis d₂ < 3, etc.).'
         : 'Codage invalide. Chaque exposant doit être un entier ≥ 0.');
       return;
     }
@@ -647,6 +691,11 @@ function compute(){
   resultsEl.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
+/*
+ * renderNotationPanel :
+ * arr[0] = d1/c1 = poids faible (tel que retourné par toPrimorial/toArithmeticCoding).
+ * Affichage : poids fort à gauche → itère de arr.length-1 vers 0.
+ */
 function renderNotationPanel(N, arr, type){
   const isPrimType = type==='prim';
   const label = isPrimType?'Notation Primoriale':'Codage Arithmétique Premier';
@@ -655,7 +704,7 @@ function renderNotationPanel(N, arr, type){
   const trimmed = [...arr];
   while(trimmed.length>1&&trimmed[trimmed.length-1]===0) trimmed.pop();
   let reprHtml = '';
-  // Affichage du poids fort (index élevé) à gauche → poids faible (index 0) à droite
+  // Poids fort (index élevé) à gauche, poids faible (index 0) à droite
   for(let i=trimmed.length-1;i>=0;i--){
     const d=trimmed[i];
     const cls=d===0?'d-zero':(onlyOnePrimeExp&&d===1?'d-prime-only':'d-nz');
