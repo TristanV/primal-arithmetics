@@ -1,9 +1,494 @@
-&lt;!DOCTYPE html&gt;
-&lt;html lang="fr" data-theme="dark"&gt;
-&lt;head&gt;
-&lt;meta charset="UTF-8"&gt;
-&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
-&lt;title&gt;Primal Arithmetics&lt;/title&gt;
-&lt;link rel="preconnect" href="https://fonts.googleapis.com"&gt;
-&lt;link rel="preconnect" href="https://fonts.gstatic.com" crossorigin&gt;
-&lt;link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"&gt;
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Primal Arithmetics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ─── TOKENS ─────────────────────────────────────────────────────────────── */
+:root,[data-theme="light"]{
+  --bg:#f7f6f2; --surface:#f0eeea; --surface2:#e8e5e0; --border:#d4d1ca;
+  --text:#28251d; --muted:#7a7974; --faint:#bab9b4;
+  --primary:#01696f; --primary-h:#0c4e54; --primary-hl:#cedcd8;
+  --purple:#7a39bb; --purple-hl:#dacfde;
+  --error:#a12c7b; --error-hl:#f5e8f0;
+  --success:#437a22; --success-hl:#d4dfcc;
+  --warn:#964219; --warn-hl:#eeddd2;
+  --shadow:0 2px 8px oklch(0.2 0.01 80/0.10);
+  --r:0.5rem; --r2:0.75rem; --r3:1rem;
+  --font-body:'Inter',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+  --tr:180ms cubic-bezier(.16,1,.3,1);
+}
+[data-theme="dark"]{
+  --bg:#171614; --surface:#1c1b19; --surface2:#252320; --border:#393836;
+  --text:#cdccca; --muted:#797876; --faint:#5a5957;
+  --primary:#4f98a3; --primary-h:#227f8b; --primary-hl:#1e3535;
+  --purple:#a86fdf; --purple-hl:#2e2340;
+  --error:#d163a7; --error-hl:#2e1a28;
+  --success:#6daa45; --success-hl:#1e2f18;
+  --warn:#fdab43; --warn-hl:#2e2010;
+  --shadow:0 2px 12px oklch(0/0.35);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
+body{min-height:100dvh;font-family:var(--font-body);font-size:1rem;
+  color:var(--text);background:var(--bg);line-height:1.6}
+button{cursor:pointer;background:none;border:none;font:inherit;color:inherit;
+  transition:color var(--tr),background var(--tr),border-color var(--tr)}
+input{font:inherit;color:inherit}
+/* ─── LAYOUT ────────────────────────────────────────────────────────────── */
+.app{max-width:760px;margin:0 auto;padding:clamp(1.5rem,4vw,3rem) clamp(1rem,3vw,2rem)}
+/* ─── HEADER ────────────────────────────────────────────────────────────── */
+header{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:2.5rem;gap:1rem}
+.logo{display:flex;align-items:center;gap:.75rem}
+.logo svg{flex-shrink:0}
+.logo-text{font-size:1.15rem;font-weight:600;letter-spacing:-.01em;line-height:1.2}
+.logo-sub{font-size:.8rem;color:var(--muted);font-weight:400;display:block}
+.theme-btn{width:36px;height:36px;display:grid;place-items:center;
+  border-radius:var(--r);color:var(--muted);
+  border:1px solid var(--border)}
+.theme-btn:hover{color:var(--text);background:var(--surface2)}
+/* ─── TABS ──────────────────────────────────────────────────────────────── */
+.tab-bar{display:flex;gap:2px;background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--r2);
+  padding:3px;margin-bottom:1.25rem}
+.tab{flex:1;padding:.45rem .75rem;border-radius:calc(var(--r2) - 3px);
+  font-size:.85rem;font-weight:500;color:var(--muted);
+  text-align:center;cursor:pointer;transition:color var(--tr),background var(--tr)}
+.tab:hover{color:var(--text)}
+.tab.active{background:var(--surface2);color:var(--text);box-shadow:var(--shadow)}
+/* ─── INPUT CARD ────────────────────────────────────────────────────────── */
+.input-card{background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r3);padding:1.25rem 1.5rem;margin-bottom:1rem}
+.input-label{font-size:.8rem;font-weight:600;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.07em;margin-bottom:.6rem;display:block}
+.input-row{display:flex;gap:.75rem;align-items:stretch}
+.main-input{flex:1;background:var(--bg);border:1.5px solid var(--border);
+  border-radius:var(--r2);padding:.65rem 1rem;font-size:1.05rem;
+  font-family:var(--font-mono);outline:none;
+  transition:border-color var(--tr),box-shadow var(--tr)}
+.main-input:focus{border-color:var(--primary);
+  box-shadow:0 0 0 3px oklch(from var(--primary) l c h/.18)}
+.main-input.invalid{border-color:var(--error);
+  box-shadow:0 0 0 3px oklch(from var(--error) l c h/.18)}
+.convert-btn{padding:.65rem 1.25rem;background:var(--primary);color:#fff;
+  border-radius:var(--r2);font-weight:600;font-size:.9rem;white-space:nowrap;
+  transition:background var(--tr)}
+.convert-btn:hover{background:var(--primary-h)}
+.hint{font-size:.8rem;color:var(--muted);margin-top:.6rem;min-height:1.2em}
+.hint.ok{color:var(--success)}
+.hint.err{color:var(--error)}
+/* ─── RESULT GRID ───────────────────────────────────────────────────────── */
+.result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.875rem}
+@media(max-width:580px){.result-grid{grid-template-columns:1fr}}
+/* ─── NUMBER CARD ───────────────────────────────────────────────────────── */
+.num-card{background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r3);padding:1.1rem 1.2rem;display:flex;flex-direction:column;gap:.75rem}
+.num-card.center{border-color:var(--primary);
+  box-shadow:0 0 0 1px var(--primary),var(--shadow)}
+.card-header{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+.card-n{font-family:var(--font-mono);font-size:1.4rem;font-weight:600}
+.card-label{font-size:.72rem;font-weight:600;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.07em}
+.badge{font-size:.72rem;font-weight:700;padding:.2rem .55rem;
+  border-radius:9999px;white-space:nowrap;letter-spacing:.03em}
+.badge-prime{background:var(--primary-hl);color:var(--primary)}
+.badge-composite{background:var(--surface2);color:var(--muted)}
+.badge-unit{background:var(--warn-hl);color:var(--warn)}
+/* ─── NOTATION BLOCK ─────────────────────────────────────────────────────── */
+.notation{background:var(--surface2);border-radius:var(--r2);
+  padding:.75rem .9rem}
+.notation-name{font-size:.72rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.08em;margin-bottom:.45rem}
+.notation-name.prim{color:var(--primary)}
+.notation-name.cap{color:var(--purple)}
+.digits-row{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:.35rem;align-items:flex-end}
+.digit-cell{display:flex;flex-direction:column;align-items:center;gap:2px}
+.digit-val{font-family:var(--font-mono);font-size:1rem;font-weight:600;
+  min-width:1.4rem;text-align:center;line-height:1;
+  padding:.15rem .25rem;border-radius:.3rem}
+.digit-val.hi-prim{background:var(--primary-hl);color:var(--primary)}
+.digit-val.hi-cap{background:var(--purple-hl);color:var(--purple)}
+.digit-sub{font-size:.62rem;color:var(--faint);font-family:var(--font-mono)}
+.decomp{font-size:.75rem;color:var(--muted);font-family:var(--font-mono);
+  word-break:break-all;line-height:1.5;margin-top:.25rem}
+/* ─── EMPTY STATE ───────────────────────────────────────────────────────── */
+.empty{text-align:center;padding:3rem 1rem;color:var(--muted);font-size:.9rem}
+.empty svg{margin:0 auto .75rem;opacity:.35}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      <svg width="38" height="38" viewBox="0 0 38 38" fill="none" aria-label="Primal Arithmetics">
+        <rect width="38" height="38" rx="9" fill="var(--primary)" opacity=".15"/>
+        <circle cx="11" cy="19" r="4" fill="var(--primary)"/>
+        <circle cx="21" cy="12" r="3" fill="var(--primary)" opacity=".7"/>
+        <circle cx="21" cy="26" r="3" fill="var(--primary)" opacity=".7"/>
+        <circle cx="30" cy="19" r="2.2" fill="var(--primary)" opacity=".45"/>
+        <line x1="15" y1="19" x2="18" y2="13" stroke="var(--primary)" stroke-width="1.2" opacity=".5"/>
+        <line x1="15" y1="19" x2="18" y2="25" stroke="var(--primary)" stroke-width="1.2" opacity=".5"/>
+        <line x1="24" y1="12.5" x2="27.8" y2="18" stroke="var(--primary)" stroke-width="1.2" opacity=".4"/>
+        <line x1="24" y1="25.5" x2="27.8" y2="20" stroke="var(--primary)" stroke-width="1.2" opacity=".4"/>
+      </svg>
+      <div class="logo-text">
+        Primal Arithmetics
+        <span class="logo-sub">Notation Primoriale &amp; Codage Arithmétique Premier</span>
+      </div>
+    </div>
+    <button class="theme-btn" data-theme-toggle aria-label="Basculer le thème">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+  </header>
+
+  <!-- TABS -->
+  <div class="tab-bar" role="tablist">
+    <button class="tab active" role="tab" data-tab="dec" aria-selected="true">Base 10</button>
+    <button class="tab" role="tab" data-tab="prim" aria-selected="false">Primoriale</button>
+    <button class="tab" role="tab" data-tab="cap" aria-selected="false">Cod. Arithm. Premier</button>
+  </div>
+
+  <!-- INPUT -->
+  <div class="input-card">
+    <label class="input-label" for="main-input" id="input-label-text">Entier en base 10</label>
+    <div class="input-row">
+      <input id="main-input" class="main-input" type="text"
+             placeholder="ex : 360" autocomplete="off" spellcheck="false"
+             aria-labelledby="input-label-text" aria-describedby="input-hint"/>
+      <button class="convert-btn" id="convert-btn">Calculer</button>
+    </div>
+    <p class="hint" id="input-hint"></p>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results">
+    <div class="empty">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        <path d="M11 8v3l1.5 1.5"/>
+      </svg>
+      Saisissez un nombre et appuyez sur <strong>Calculer</strong>.
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ═══════════════════════════════════════════════════════════════════════════
+   PRIMES UTILITY
+═══════════════════════════════════════════════════════════════════════════ */
+const PRIMES = (function(){
+  const sieve = new Uint8Array(10000).fill(1);
+  sieve[0]=sieve[1]=0;
+  for(let i=2;i<100;i++) if(sieve[i]) for(let j=i*i;j<10000;j+=i) sieve[j]=0;
+  const p=[];
+  for(let i=2;i<10000;i++) if(sieve[i]) p.push(i);
+  return p;
+})();
+
+function nthPrime(n){ // 0-indexed
+  while(PRIMES.length<=n){
+    let c=PRIMES[PRIMES.length-1]+2;
+    outer: while(true){
+      for(let p of PRIMES){ if(p*p>c) break; if(c%p===0){c+=2;continue outer;} }
+      PRIMES.push(c); break;
+    }
+  }
+  return PRIMES[n];
+}
+
+function isPrime(n){
+  if(n<2) return false;
+  if(n<4) return true;
+  if(n%2===0||n%3===0) return false;
+  for(let i=5;i*i<=n;i+=6) if(n%i===0||n%(i+2)===0) return false;
+  return true;
+}
+
+/* primorial P_k# = product of first k primes (P_0# = 1) */
+function primorial(k){
+  let r=1n;
+  for(let i=0;i<k;i++) r*=BigInt(nthPrime(i));
+  return r;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BASE 10 → PRIMORIALE
+   Returns array, index 0 = leftmost digit (highest rank).
+═══════════════════════════════════════════════════════════════════════════ */
+function decToPrim(n){
+  if(n===0) return [0];
+  let rem=BigInt(n), rank=0, digits=[];
+  while(rem>0n){
+    const p=BigInt(nthPrime(rank));
+    digits.push(Number(rem%p));
+    rem=rem/p;
+    rank++;
+  }
+  digits.reverse(); // index 0 = highest rank (leftmost)
+  return digits;
+}
+
+/* primoriale array (left=high rank) → base10 BigInt */
+function primToDecB(arr){
+  const n=arr.length;
+  let total=0n;
+  for(let i=0;i<n;i++){
+    const rank=n-1-i; // rank 0 at rightmost position
+    const d=BigInt(arr[i]);
+    total+=d*primorial(rank);
+  }
+  return total;
+}
+
+function validatePrim(arr){
+  const n=arr.length;
+  for(let i=0;i<n;i++){
+    const rank=n-1-i; // rank from right, 0-based
+    // constraint: digit at rank r must be < nthPrime(r)
+    // rank 0: d < 2 (nthPrime(0)=2)
+    // rank 1: d < 3 (nthPrime(1)=3)
+    // rank k: d < nthPrime(k)
+    const bound=nthPrime(rank);
+    if(arr[i]<0||arr[i]>=bound){
+      return {valid:false, msg:`Chiffre #${i+1} depuis la gauche (rang ${rank}) : valeur ${arr[i]} invalide — doit être < ${bound}.`};
+    }
+  }
+  return {valid:true};
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BASE 10 → CAP
+   Convention: arr[0] = exposant de 2, arr[1] = exposant de 3, etc.
+   (gauche = petit premier = poids faible en valeur mais index 0)
+═══════════════════════════════════════════════════════════════════════════ */
+function decToCAP(n){
+  if(n===1) return [0];
+  let rem=n, exps=[], pi=0;
+  while(rem>1){
+    const p=nthPrime(pi);
+    let c=0;
+    while(rem%p===0){rem=Math.floor(rem/p);c++;}
+    exps.push(c);
+    pi++;
+  }
+  while(exps.length>1&&exps[exps.length-1]===0) exps.pop();
+  return exps; // arr[0]=exp(2), arr[last]=exp(largest prime factor)
+}
+
+/* CAP array (arr[0]=exp(2)) → base10 BigInt */
+function CAPToDec(arr){
+  let total=1n;
+  for(let i=0;i<arr.length;i++){
+    if(arr[i]<0) return null;
+    if(arr[i]>0) total*=BigInt(nthPrime(i))**BigInt(arr[i]);
+  }
+  return total;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PARSE USER INPUT
+═══════════════════════════════════════════════════════════════════════════ */
+function parseInput(mode, raw){
+  const s=raw.trim();
+  if(!s) return {ok:false, msg:''};
+
+  if(mode==='dec'){
+    if(!/^\d+$/.test(s)) return {ok:false, msg:'Entier positif attendu (chiffres 0–9 uniquement).'};
+    const v=Number(s);
+    if(!Number.isFinite(v)||v<1) return {ok:false, msg:'Le nombre doit être ≥ 1.'};
+    if(v>1e12) return {ok:false, msg:'Maximum supporté : 10¹².'};
+    return {ok:true, n:v, preview:`= ${v.toLocaleString('fr-FR')}`};
+  }
+
+  if(mode==='prim'){
+    const parts=s.split(/\s+/).map(x=>parseInt(x,10));
+    if(parts.some(x=>isNaN(x)||x<0))
+      return {ok:false, msg:'Chiffres entiers ≥ 0 séparés par des espaces.'};
+    const v=validatePrim(parts);
+    if(!v.valid) return {ok:false, msg:v.msg};
+    const b=primToDecB(parts);
+    if(b<1n) return {ok:false, msg:'La valeur reconstruite doit être ≥ 1.'};
+    if(b>1000000000000n) return {ok:false, msg:'Maximum supporté : 10¹².'};
+    return {ok:true, n:Number(b), preview:`= ${Number(b).toLocaleString('fr-FR')} (base 10)`};
+  }
+
+  if(mode==='cap'){
+    const parts=s.split(/\s+/).map(x=>parseInt(x,10));
+    if(parts.some(x=>isNaN(x)||x<0))
+      return {ok:false, msg:'Exposants entiers ≥ 0 séparés par des espaces.'};
+    const b=CAPToDec(parts);
+    if(b===null) return {ok:false, msg:'Exposants invalides.'};
+    if(b<1n) return {ok:false, msg:'La valeur reconstruite doit être ≥ 1.'};
+    if(b>1000000000000n) return {ok:false, msg:'Maximum supporté : 10¹².'};
+    return {ok:true, n:Number(b), preview:`= ${Number(b).toLocaleString('fr-FR')} (base 10)`};
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RENDER HELPERS
+═══════════════════════════════════════════════════════════════════════════ */
+function renderPrimDigits(n){
+  const arr=decToPrim(n);
+  const len=arr.length;
+  let cells='', decomp=[];
+  for(let i=0;i<len;i++){
+    const rank=len-1-i;
+    const d=arr[i];
+    const hi=d>0?' hi-prim':'';
+    const weight=primorial(rank);
+    cells+=`<div class="digit-cell">
+      <span class="digit-val${hi}">${d}</span>
+      <span class="digit-sub">×${weight}</span>
+    </div>`;
+    if(d>0) decomp.push(`${d}×${weight}`);
+  }
+  const sum=decomp.length?decomp.join(' + '):'0';
+  return `<div class="digits-row">${cells}</div><div class="decomp">${sum} = ${n}</div>`;
+}
+
+function renderCAPDigits(n){
+  const arr=decToCAP(n);
+  let cells='', decomp=[];
+  for(let i=0;i<arr.length;i++){
+    const c=arr[i];
+    const p=nthPrime(i);
+    const hi=c>0?' hi-cap':'';
+    cells+=`<div class="digit-cell">
+      <span class="digit-val${hi}">${c}</span>
+      <span class="digit-sub">${p}^${c}</span>
+    </div>`;
+    if(c>0) decomp.push(c===1?`${p}`:`${p}<sup>${c}</sup>`);
+  }
+  const prod=decomp.length?decomp.join('×'):'1';
+  return `<div class="digits-row">${cells}</div><div class="decomp">${prod} = ${n}</div>`;
+}
+
+function badgeHTML(n){
+  if(n===1) return `<span class="badge badge-unit">Unité</span>`;
+  if(isPrime(n)) return `<span class="badge badge-prime">Premier</span>`;
+  return `<span class="badge badge-composite">Composé</span>`;
+}
+
+const REL_LABELS={'-1':'N − 1','0':'N','1':'N + 1'};
+
+function numCardHTML(n, rel){
+  const center=rel==='0'?' center':'';
+  return `<div class="num-card${center}">
+    <div class="card-header">
+      <div>
+        <div class="card-label">${REL_LABELS[rel]}</div>
+        <div class="card-n">${n.toLocaleString('fr-FR')}</div>
+      </div>
+      ${badgeHTML(n)}
+    </div>
+    <div class="notation">
+      <div class="notation-name prim">Primoriale</div>
+      ${renderPrimDigits(n)}
+    </div>
+    <div class="notation">
+      <div class="notation-name cap">Cod. Arithm. Premier</div>
+      ${renderCAPDigits(n)}
+    </div>
+  </div>`;
+}
+
+function showResults(n){
+  const wrap=document.getElementById('results');
+  let html='<div class="result-grid">';
+  [[n-1,'-1'],[n,'0'],[n+1,'1']].forEach(([v,rel])=>{
+    if(v>=1) html+=numCardHTML(v,rel);
+    else html+=`<div class="num-card"><div class="card-label">${REL_LABELS[rel]}</div><div class="card-n" style="color:var(--faint)">—</div></div>`;
+  });
+  html+='</div>';
+  wrap.innerHTML=html;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TAB + INPUT STATE
+═══════════════════════════════════════════════════════════════════════════ */
+const PLACEHOLDERS={
+  dec:'ex : 360',
+  prim:'ex : 1 0 0  →  12   (poids fort à gauche)',
+  cap: 'ex : 3 2 1  →  360  (exp de 2 à gauche)'
+};
+const LABELS={
+  dec:'Entier en base 10',
+  prim:'Chiffres primoriaux  —  gauche = poids fort',
+  cap: 'Exposants premiers  —  gauche = exposant de 2'
+};
+
+let currentMode='dec';
+const inputEl=document.getElementById('main-input');
+const hintEl=document.getElementById('input-hint');
+const labelEl=document.getElementById('input-label-text');
+const btnEl=document.getElementById('convert-btn');
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(t=>{t.classList.remove('active');t.setAttribute('aria-selected','false');});
+    tab.classList.add('active');
+    tab.setAttribute('aria-selected','true');
+    currentMode=tab.dataset.tab;
+    inputEl.placeholder=PLACEHOLDERS[currentMode];
+    labelEl.textContent=LABELS[currentMode];
+    inputEl.value='';
+    hintEl.textContent='';
+    hintEl.className='hint';
+    inputEl.classList.remove('invalid');
+  });
+});
+
+function liveValidate(){
+  const raw=inputEl.value;
+  if(!raw.trim()){hintEl.textContent='';hintEl.className='hint';inputEl.classList.remove('invalid');return;}
+  const r=parseInput(currentMode,raw);
+  if(r&&r.ok){
+    hintEl.textContent=r.preview;
+    hintEl.className='hint ok';
+    inputEl.classList.remove('invalid');
+  } else {
+    hintEl.textContent=r?r.msg:'Saisie invalide.';
+    hintEl.className='hint err';
+    inputEl.classList.add('invalid');
+  }
+}
+
+inputEl.addEventListener('input',liveValidate);
+inputEl.addEventListener('keydown',e=>{if(e.key==='Enter') btnEl.click();});
+
+btnEl.addEventListener('click',()=>{
+  const r=parseInput(currentMode,inputEl.value);
+  if(!r||!r.ok){liveValidate();return;}
+  showResults(r.n);
+});
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THEME TOGGLE
+═══════════════════════════════════════════════════════════════════════════ */
+(function(){
+  const btn=document.querySelector('[data-theme-toggle]');
+  const root=document.documentElement;
+  let dark=true;
+  const SUN=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`;
+  const MOON=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+  btn.innerHTML=MOON;
+  btn.addEventListener('click',()=>{
+    dark=!dark;
+    root.setAttribute('data-theme',dark?'dark':'light');
+    btn.innerHTML=dark?MOON:SUN;
+    btn.setAttribute('aria-label',dark?'Passer en mode clair':'Passer en mode sombre');
+  });
+})();
+</script>
+</body>
+</html>
