@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Primal Arithmetics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── Design Tokens ─────────────────────────────────────────── */
+:root,[data-theme="light"]{
+  --bg:#f7f6f2; --surface:#f9f8f5; --surface2:#fbfbf9;
+  --offset:#edeae5; --border:rgba(40,37,29,.12); --divider:#dcd9d5;
+  --text:#28251d; --muted:#7a7974; --faint:#bab9b4;
+  --primary:#01696f; --primary-h:#0c4e54; --primary-hl:#cedcd8;
+  --accent-a:#006494; --accent-b:#437a22;
+  --prime:#a12c7b; --prime-hl:#e0ced7;
+  --shadow-sm:0 1px 3px rgba(40,37,29,.08);
+  --shadow-md:0 4px 16px rgba(40,37,29,.10);
+  --shadow-lg:0 12px 36px rgba(40,37,29,.13);
+  --r:0.625rem; --r-lg:1rem; --r-full:9999px;
+  --tr:180ms cubic-bezier(.16,1,.3,1);
+  --font-body:'Inter',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+[data-theme="dark"]{
+  --bg:#141312; --surface:#1c1b19; --surface2:#222120;
+  --offset:#2a2927; --border:rgba(255,255,255,.10); --divider:#2e2d2b;
+  --text:#cdccca; --muted:#797876; --faint:#4a4947;
+  --primary:#4f98a3; --primary-h:#227f8b; --primary-hl:#2a3e3f;
+  --accent-a:#5591c7; --accent-b:#6daa45;
+  --prime:#d163a7; --prime-hl:#4c3d46;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.25);
+  --shadow-md:0 4px 16px rgba(0,0,0,.35);
+  --shadow-lg:0 12px 36px rgba(0,0,0,.45);
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme]){
+  --bg:#141312;--surface:#1c1b19;--surface2:#222120;--offset:#2a2927;
+  --border:rgba(255,255,255,.10);--divider:#2e2d2b;
+  --text:#cdccca;--muted:#797876;--faint:#4a4947;
+  --primary:#4f98a3;--primary-h:#227f8b;--primary-hl:#2a3e3f;
+  --accent-a:#5591c7;--accent-b:#6daa45;
+  --prime:#d163a7;--prime-hl:#4c3d46;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.25);
+  --shadow-md:0 4px 16px rgba(0,0,0,.35);
+  --shadow-lg:0 12px 36px rgba(0,0,0,.45);
+}}
+
+/* ── Reset ──────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:none;text-size-adjust:none}
+body{font-family:var(--font-body);font-size:1rem;color:var(--text);background:var(--bg);min-height:100dvh;line-height:1.6;-webkit-font-smoothing:antialiased}
+img{display:block;max-width:100%}
+button{cursor:pointer;border:none;background:none;font:inherit;color:inherit}
+a,button{transition:color var(--tr),background var(--tr),border-color var(--tr),box-shadow var(--tr),opacity var(--tr)}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* ── Layout ───────────────────────────────────────────────── */
+.page{max-width:860px;margin-inline:auto;padding:clamp(1.5rem,4vw,3rem) clamp(1rem,3vw,2rem)}
+
+/* ── Header ──────────────────────────────────────────────── */
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:clamp(2rem,5vw,3.5rem)}
+.logo{display:flex;align-items:center;gap:.75rem}
+.logo-icon{width:36px;height:36px;flex-shrink:0}
+.logo-text{font-size:1.15rem;font-weight:600;letter-spacing:-.02em;color:var(--text)}
+.logo-text span{color:var(--primary)}
+.theme-btn{width:36px;height:36px;display:grid;place-items:center;border-radius:var(--r);border:1px solid var(--border);color:var(--muted)}
+.theme-btn:hover{color:var(--text);background:var(--offset)}
+
+/* ── Hero ─────────────────────────────────────────────────── */
+.hero{margin-bottom:2.5rem}
+.hero h1{font-size:clamp(1.5rem,3vw,2rem);font-weight:600;letter-spacing:-.025em;line-height:1.2;margin-bottom:.5rem}
+.hero p{color:var(--muted);font-size:.9375rem;max-width:60ch}
+
+/* ── Input card ─────────────────────────────────────────────── */
+.input-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:clamp(1.25rem,3vw,1.75rem);margin-bottom:2rem;box-shadow:var(--shadow-sm)}
+.input-row{display:flex;gap:.75rem;align-items:stretch;flex-wrap:wrap}
+.input-wrap{flex:1;min-width:180px;position:relative}
+.input-wrap label{display:block;font-size:.8125rem;font-weight:500;color:var(--muted);margin-bottom:.375rem;letter-spacing:.01em}
+.num-input{width:100%;padding:.65rem 1rem;font-family:var(--font-mono);font-size:1.1rem;font-weight:600;color:var(--text);background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);outline:none;transition:border-color var(--tr),box-shadow var(--tr)}
+.num-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px color-mix(in oklch,var(--primary) 18%,transparent)}
+.num-input::placeholder{color:var(--faint);font-weight:400}
+.calc-btn{align-self:flex-end;padding:.68rem 1.5rem;background:var(--primary);color:#fff;border-radius:var(--r);font-weight:600;font-size:.9375rem;white-space:nowrap;box-shadow:var(--shadow-sm)}
+.calc-btn:hover{background:var(--primary-h);box-shadow:var(--shadow-md)}
+.calc-btn:active{transform:scale(.97)}
+
+/* ── Error ──────────────────────────────────────────────────── */
+.error-msg{margin-top:.625rem;font-size:.8125rem;color:var(--prime);display:none}
+.error-msg.visible{display:block}
+
+/* ── Results ────────────────────────────────────────────────── */
+.results{display:none;flex-direction:column;gap:1.5rem}
+.results.visible{display:flex}
+
+/* ── Number block ───────────────────────────────────────────────── */
+.num-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-sm)}
+.num-block.center{border-color:var(--primary);box-shadow:0 0 0 2px color-mix(in oklch,var(--primary) 30%,transparent),var(--shadow-md)}
+
+.nb-header{display:flex;align-items:center;justify-content:space-between;padding:.875rem 1.25rem;background:var(--offset);border-bottom:1px solid var(--border)}
+.nb-value{display:flex;align-items:baseline;gap:.75rem;flex-wrap:wrap}
+.nb-n{font-family:var(--font-mono);font-size:1.6rem;font-weight:600;color:var(--text);line-height:1}
+.nb-role{font-size:.8rem;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.prime-badge{padding:.2rem .6rem;border-radius:var(--r-full);font-size:.75rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;background:var(--prime-hl);color:var(--prime)}
+.composite-badge{padding:.2rem .6rem;border-radius:var(--r-full);font-size:.75rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;background:var(--offset);color:var(--muted)}
+
+.nb-body{padding:1.25rem;display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:540px){.nb-body{grid-template-columns:1fr}}
+
+/* ── Notation panel ────────────────────────────────────────────── */
+.notation{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.1rem}
+.notation-label{font-size:.7375rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem;display:flex;align-items:center;gap:.4rem}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dot-add{background:var(--accent-b)}
+.dot-mul{background:var(--accent-a)}
+
+.repr{font-family:var(--font-mono);font-size:1rem;font-weight:600;color:var(--text);word-break:break-all;line-height:1.5}
+.repr .digit{display:inline-block;padding:.1em .22em;border-radius:.25em;margin:.05em .04em;transition:background var(--tr)}
+.repr .d-zero{color:var(--faint)}
+.repr .d-nz{color:var(--text);background:var(--primary-hl)}
+.repr .d-prime-only{color:var(--prime);background:var(--prime-hl)}
+
+.factoring{margin-top:.6rem;font-size:.8rem;color:var(--muted);font-family:var(--font-mono);line-height:1.5}
+
+/* ── Legend ───────────────────────────────────────────────────── */
+.legend{display:flex;gap:1.5rem;flex-wrap:wrap;padding:.875rem 1.25rem;border-top:1px solid var(--divider);font-size:.8rem;color:var(--muted)}
+.legend-item{display:flex;align-items:center;gap:.4rem}
+.legend-sq{width:10px;height:10px;border-radius:2px}
+
+/* ── Footer ──────────────────────────────────────────────────── */
+.footer{margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--divider);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;font-size:.8125rem;color:var(--faint)}
+.footer a{color:var(--muted);text-decoration:none}
+.footer a:hover{color:var(--text)}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="logo">
+      <svg class="logo-icon" viewBox="0 0 36 36" fill="none" aria-label="Primal Arithmetics logo">
+        <rect width="36" height="36" rx="8" fill="var(--primary)" opacity=".15"/>
+        <circle cx="10" cy="18" r="3.5" fill="var(--primary)"/>
+        <circle cx="18" cy="18" r="3.5" fill="var(--prime)" opacity=".85"/>
+        <circle cx="26" cy="18" r="3.5" fill="var(--accent-b)" opacity=".85"/>
+        <line x1="13.5" y1="18" x2="14.5" y2="18" stroke="var(--border)" stroke-width="1.5"/>
+        <line x1="21.5" y1="18" x2="22.5" y2="18" stroke="var(--border)" stroke-width="1.5"/>
+        <path d="M10 10 L10 14" stroke="var(--primary)" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M18 10 L18 14" stroke="var(--prime)" stroke-width="1.5" stroke-linecap="round" opacity=".85"/>
+        <path d="M26 10 L26 14" stroke="var(--accent-b)" stroke-width="1.5" stroke-linecap="round" opacity=".85"/>
+      </svg>
+      <span class="logo-text">Primal <span>Arithmetics</span></span>
+    </div>
+    <button class="theme-btn" data-theme-toggle aria-label="Basculer le thème">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <h1>Deux notations primales d’un entier</h1>
+    <p>Explorez la notation <strong>Primoriale</strong> (additive positionnelle) et le <strong>Codage Arithmétique Premier</strong> (multiplicatif, factorisation unique) pour n’importe quel entier naturel.</p>
+  </section>
+
+  <!-- Input -->
+  <div class="input-card">
+    <div class="input-row">
+      <div class="input-wrap">
+        <label for="numInput">Entier en base 10</label>
+        <input id="numInput" class="num-input" type="number" min="1" placeholder="ex : 360" autocomplete="off">
+      </div>
+      <button class="calc-btn" id="calcBtn" onclick="compute()">Analyser →</button>
+    </div>
+    <div class="error-msg" id="errMsg"></div>
+  </div>
+
+  <!-- Results -->
+  <div class="results" id="results">
+    <!-- filled by JS -->
+  </div>
+
+  <!-- Legend -->
+  <div class="legend" id="legend" style="display:none">
+    <div class="legend-item"><div class="legend-sq" style="background:var(--primary-hl)"></div> Chiffre non nul</div>
+    <div class="legend-item"><div class="legend-sq" style="background:var(--prime-hl)"></div> Nombre premier (1 seul exposant = 1)</div>
+    <div class="legend-item"><div class="legend-sq" style="background:var(--faint);opacity:.5"></div> Chiffre zéro</div>
+    <div class="legend-item"><div class="dot dot-add"></div> Primoriale (additive)</div>
+    <div class="legend-item"><div class="dot dot-mul"></div> Codage Arithmétique Premier</div>
+  </div>
+
+  <footer class="footer">
+    <span>Primal Arithmetics · <a href="https://github.com/TristanV/primal-arithmetics" target="_blank" rel="noopener">GitHub</a></span>
+    <span>Théorème fondamental de l’arithmétique</span>
+  </footer>
+</div>
+
+<script>
+// ── Prime utilities ───────────────────────────────────────────────
+const PRIMES = [];
+(function sieve(limit){
+  const s = new Uint8Array(limit+1).fill(1);
+  s[0]=s[1]=0;
+  for(let i=2;i*i<=limit;i++) if(s[i]) for(let j=i*i;j<=limit;j+=i) s[j]=0;
+  for(let i=2;i<=limit;i++) if(s[i]) PRIMES.push(i);
+})(100000);
+
+function isPrime(n){
+  if(n<2) return false;
+  if(n===2) return true;
+  if(n%2===0) return false;
+  for(let i=3;i*i<=n;i+=2) if(n%i===0) return false;
+  return true;
+}
+
+// ── Primorial notation ─────────────────────────────────────────────────
+function toPrimorial(N){
+  if(N===0) return [0];
+  const digits = [];
+  let primorial = 1n;
+  const bn = BigInt(N);
+  for(let i=0;i<PRIMES.length;i++){
+    const p = BigInt(PRIMES[i]);
+    const di = Number((bn / primorial) % p);
+    digits.push(di);
+    primorial *= p;
+    if(primorial > bn) break;
+  }
+  while(digits.length > 1 && digits[digits.length-1]===0) digits.pop();
+  return digits;
+}
+
+// ── Prime Arithmetic Coding ────────────────────────────────────────────
+function toArithmeticCoding(N){
+  if(N===1) return [0];
+  const exps = [];
+  let rem = N;
+  let idx = 0;
+  while(rem > 1 && idx < PRIMES.length){
+    let cnt = 0;
+    while(rem % PRIMES[idx] === 0){ rem = Math.floor(rem/PRIMES[idx]); cnt++; }
+    exps.push(cnt);
+    idx++;
+  }
+  while(exps.length > 1 && exps[exps.length-1]===0) exps.pop();
+  return exps;
+}
+
+// ── Render digits ─────────────────────────────────────────────────────
+function renderDigits(arr, prime, notation){
+  const isPrimeCap = prime && notation==='arithmetic';
+  const rev = [...arr].reverse();
+  return rev.map((d)=>{
+    const isNz = d!==0;
+    let cls = 'd-zero';
+    if(isPrimeCap && isNz) cls='d-prime-only';
+    else if(isNz) cls='d-nz';
+    return `<span class="digit ${cls}">${d}</span>`;
+  }).join(' ');
+}
+
+// ── Factorization string ──────────────────────────────────────────────────
+function factorString(N){
+  if(N===1) return '1';
+  let rem=N;
+  const parts=[];
+  for(let i=0;i<PRIMES.length&&rem>1;i++){
+    let cnt=0;
+    while(rem%PRIMES[i]===0){rem=Math.floor(rem/PRIMES[i]);cnt++;}
+    if(cnt>0) parts.push(cnt===1?`${PRIMES[i]}`:`${PRIMES[i]}^${cnt}`);
+  }
+  return parts.join(' × ');
+}
+
+// ── Primorial decomposition string ─────────────────────────────────────────────
+function primorialString(arr){
+  const parts=[];
+  for(let i=arr.length-1;i>=0;i--){
+    if(arr[i]===0) continue;
+    let prim=1;
+    for(let k=0;k<i;k++) prim*=PRIMES[k];
+    const label = i===0?'1':`P${i}#=${prim}`;
+    parts.push(`${arr[i]}×${label}`);
+  }
+  return parts.length ? parts.join(' + ') : '0';
+}
+
+// ── Build a number block HTML ────────────────────────────────────────────────
+function buildBlock(N, role, isCenter){
+  const prime = isPrime(N);
+  const primArr = toPrimorial(N);
+  const capArr  = toArithmeticCoding(N);
+
+  const roleLabel = role==='pred'?'Prédécesseur':role==='succ'?'Successeur':'N (saisi)';
+  const badgeHTML = prime
+    ? `<span class="prime-badge">Premier</span>`
+    : `<span class="composite-badge">${N===1?'Unité':'Composé'}</span>`;
+
+  const primDigits = renderDigits(primArr, prime, 'primorial');
+  const capDigits  = renderDigits(capArr,  prime, 'arithmetic');
+  const primDecomp = primorialString(primArr);
+  const capDecomp  = N===1 ? '1 (produit vide)' : factorString(N);
+
+  return `
+  <div class="num-block${isCenter?' center':''}">
+    <div class="nb-header">
+      <div class="nb-value">
+        <span class="nb-n">${N.toLocaleString('fr-FR')}</span>
+        <span class="nb-role">${roleLabel}</span>
+      </div>
+      ${badgeHTML}
+    </div>
+    <div class="nb-body">
+      <div class="notation">
+        <div class="notation-label">
+          <span class="dot dot-add"></span>
+          Primoriale
+        </div>
+        <div class="repr">${primDigits}</div>
+        <div class="factoring">${primDecomp}</div>
+      </div>
+      <div class="notation">
+        <div class="notation-label">
+          <span class="dot dot-mul"></span>
+          Codage Arithmétique Premier
+        </div>
+        <div class="repr">${capDigits}</div>
+        <div class="factoring">${capDecomp}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Main compute ───────────────────────────────────────────────────────
+function compute(){
+  const raw = document.getElementById('numInput').value.trim();
+  const errEl = document.getElementById('errMsg');
+  const resEl = document.getElementById('results');
+  const legEl = document.getElementById('legend');
+
+  errEl.textContent=''; errEl.classList.remove('visible');
+
+  const N = parseInt(raw, 10);
+  if(!raw || isNaN(N) || N < 1){
+    errEl.textContent = 'Veuillez saisir un entier ≥ 1.';
+    errEl.classList.add('visible');
+    resEl.classList.remove('visible');
+    legEl.style.display='none';
+    return;
+  }
+  if(N > 1e12){
+    errEl.textContent = 'Entier trop grand (max 10¹² pour la factorisation JS).';
+    errEl.classList.add('visible');
+    return;
+  }
+
+  const blocks = [];
+  if(N > 1) blocks.push(buildBlock(N-1,'pred',false));
+  blocks.push(buildBlock(N,'center',true));
+  blocks.push(buildBlock(N+1,'succ',false));
+
+  resEl.innerHTML = blocks.join('');
+  resEl.classList.add('visible');
+  legEl.style.display='flex';
+}
+
+// ── Enter key ─────────────────────────────────────────────────────────
+document.getElementById('numInput').addEventListener('keydown', e=>{
+  if(e.key==='Enter') compute();
+});
+
+// ── Theme toggle ──────────────────────────────────────────────────────
+(function(){
+  const btn = document.querySelector('[data-theme-toggle]');
+  const root = document.documentElement;
+  let dark = root.getAttribute('data-theme')==='dark';
+  function setTheme(d){
+    dark=d;
+    root.setAttribute('data-theme', d?'dark':'light');
+    btn.innerHTML = d
+      ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`
+      : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+  }
+  btn.addEventListener('click',()=>setTheme(!dark));
+  setTheme(dark);
+})();
+</script>
+</body>
+</html>
