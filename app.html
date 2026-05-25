@@ -268,8 +268,8 @@ function validatePrim(arr){
 
 /* ═══════════════════════════════════════════════════════════════════════════
    BASE 10 → CAP
-   Convention: arr[0] = exposant de 2, arr[1] = exposant de 3, etc.
-   (gauche = petit premier = poids faible en valeur mais index 0)
+   Convention interne: arr[0] = exposant de 2, arr[1] = exposant de 3, etc.
+   Affichage et saisie: gauche = grand premier (poids fort), droite = exposant de 2.
 ═══════════════════════════════════════════════════════════════════════════ */
 function decToCAP(n){
   if(n===1) return [0];
@@ -326,7 +326,8 @@ function parseInput(mode, raw){
     const parts=s.split(/\s+/).map(x=>parseInt(x,10));
     if(parts.some(x=>isNaN(x)||x<0))
       return {ok:false, msg:'Exposants entiers ≥ 0 séparés par des espaces.'};
-    const b=CAPToDec(parts);
+    // Convention: left = largest prime (high weight); CAPToDec expects arr[0]=exp(2), so reverse
+    const b=CAPToDec([...parts].reverse());
     if(b===null) return {ok:false, msg:'Exposants invalides.'};
     if(b<1n) return {ok:false, msg:'La valeur reconstruite doit être ≥ 1.'};
     if(b>1000000000000n) return {ok:false, msg:'Maximum supporté : 10¹².'};
@@ -359,7 +360,8 @@ function renderPrimDigits(n){
 function renderCAPDigits(n){
   const arr=decToCAP(n);
   let cells='', decomp=[];
-  for(let i=0;i<arr.length;i++){
+  // Display in reverse: left = largest prime (highest exponent index = highest weight)
+  for(let i=arr.length-1;i>=0;i--){
     const c=arr[i];
     const p=nthPrime(i);
     const hi=c>0?' hi-cap':'';
@@ -367,7 +369,7 @@ function renderCAPDigits(n){
       <span class="digit-val${hi}">${c}</span>
       <span class="digit-sub">${p}^${c}</span>
     </div>`;
-    if(c>0) decomp.push(c===1?`${p}`:`${p}<sup>${c}</sup>`);
+    if(c>0) decomp.unshift(c===1?`${p}`:`${p}<sup>${c}</sup>`);
   }
   const prod=decomp.length?decomp.join('×'):'1';
   return `<div class="digits-row">${cells}</div><div class="decomp">${prod} = ${n}</div>`;
@@ -419,12 +421,12 @@ function showResults(n){
 const PLACEHOLDERS={
   dec:'ex : 360',
   prim:'ex : 1 0 0  →  12   (poids fort à gauche)',
-  cap: 'ex : 3 2 1  →  360  (exp de 2 à gauche)'
+  cap: 'ex : 1 2 3  →  360  (poids fort à gauche)'
 };
 const LABELS={
   dec:'Entier en base 10',
   prim:'Chiffres primoriaux  —  gauche = poids fort',
-  cap: 'Exposants premiers  —  gauche = exposant de 2'
+  cap: 'Exposants premiers  —  gauche = poids fort (grand premier)'
 };
 
 let currentMode='dec';

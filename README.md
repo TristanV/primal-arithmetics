@@ -105,21 +105,22 @@ On code N par la suite de ses **exposants de factorisation** : (c₁, c₂, c₃
 
 ### Convention d’écriture
 
-On écrit les exposants **de droite à gauche**, séparés par un espace :
+On écrit les exposants **de gauche à droite, poids fort d’abord** (grand premier à gauche), séparés par un espace :
 
 ```
 … c₄ c₃ c₂ c₁
+(gauche = grand premier = poids fort ; droite = exposant de 2 = poids faible)
 ```
 
-Le chiffre le plus à droite (c₁) est l’exposant de 2 ; à sa gauche (c₂) l’exposant de 3, etc.
+Le chiffre le plus à **droite** (c₁) est l’exposant de 2 ; à sa gauche (c₂) l’exposant de 3, etc. Le chiffre le plus à **gauche** est l’exposant du plus grand facteur premier présent.
 
 Exemples :
 
 ```
 1  = 0               (tous les exposants sont 0 — le produit vide vaut 1)
-12 = 2² × 3        → 0 0 0 0 0 0 1 2
-18 = 2 × 3²        → 0 0 0 0 0 0 2 1
-30 = 2 × 3 × 5     → 0 0 0 0 0 1 1 1
+12 = 2² × 3        → 1 2  (exp de 3 à gauche, exp de 2 à droite)
+18 = 2 × 3²        → 2 1  (exp de 3 à gauche, exp de 2 à droite)
+30 = 2 × 3 × 5     → 1 1 1
 ```
 
 ### Propriétés
@@ -229,7 +230,7 @@ S’arrêter quand N = 1.
 360 / 2 = 180 / 2 = 90 / 2 = 45  → c₁ = 3
 45  / 3 = 15  / 3 = 5             → c₂ = 2
 5   / 5 = 1                        → c₃ = 1
-→ 360 = 2³ × 3² × 5  →  0 0 0 0 0 1 2 3
+→ 360 = 2³ × 3² × 5  →  1 2 3  (affiché gauche=grand premier, droite=exposant de 2)
 ```
 
 ### Primoriale → Base 10
@@ -257,11 +258,12 @@ Reconstruction par produit des puissances de premiers :
 N = ∏ pᵢ^cᵢ = 2^c₁ × 3^c₂ × 5^c₃ × …
 ```
 
-**Exemple : « 3 2 1 » (c₁=3, c₂=2, c₃=1)**
+**Exemple : « 1 2 3 » (gauche = exposant de 5, droite = exposant de 2)**
 ```
+Lecture de droite à gauche : c₁=3 (exp de 2), c₂=2 (exp de 3), c₃=1 (exp de 5)
 N = 2³ × 3² × 5¹ = 8 × 9 × 5 = 360
 ```
-Tous les exposants doivent être ≥ 0 ; l’ordre est : le chiffre le plus à gauche est l’exposant du plus petit premier (2).
+Tous les exposants doivent être ≥ 0 ; le chiffre le plus à **droite** est l’exposant de 2 (poids faible), et le chiffre le plus à **gauche** est l’exposant du plus grand facteur premier (poids fort).
 
 ---
 
@@ -285,7 +287,7 @@ L’utilisateur choisit dans quelle notation il saisit son nombre grâce à troi
 |---|---|---|
 | **Base 10** | Entier décimal classique | `360` |
 | **Primoriale** | Chiffres séparés par des espaces, gauche = poids fort | `2 0 0` → 12 |
-| **Codage Arithmétique Premier** | Exposants séparés par des espaces, gauche = exposant de 2 | `3 2 1` → 360 |
+| **Codage Arithmétique Premier** | Exposants séparés par des espaces, gauche = poids fort (grand premier) | `1 2 3` → 360 |
 
 Quel que soit le système de saisie, l’application convertit d’abord la valeur en base 10, puis affiche les résultats dans les deux notations.
 
